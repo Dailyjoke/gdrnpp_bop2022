@@ -29,7 +29,7 @@ DATASETS.TRAIN = ["lmo_pbr_train"]
 DATASETS.TEST = ["lmo_bop_test"]
 
 dataloader.train.dataset.lst.names = DATASETS.TRAIN
-dataloader.train.total_batch_size = 32
+dataloader.train.total_batch_size = 8
 
 # color aug
 dataloader.train.aug_wrapper.COLOR_AUG_PROB = 0.8

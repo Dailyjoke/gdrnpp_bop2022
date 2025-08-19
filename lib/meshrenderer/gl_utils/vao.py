@@ -7,7 +7,11 @@ from .ebo import EBO
 class VAO(object):
     def __init__(self, vbo_attrib, ebo=None):
         self.__id = np.empty(1, dtype=np.uint32)
-        GL.glCreateVertexArrays(len(self.__id), self.__id)
+        # GL.glCreateVertexArrays(len(self.__id), self.__id)
+        buf = np.empty(1, dtype=np.uint32)
+        # GL.glCreateBuffers(1, buf)
+        GL.glCreateVertexArrays(1, buf)   # ✅ 正確 API：建立 VAO
+        self.__id = int(buf[0])  # 轉成純 int
         i = 0
         for vbo_offset_stride, attribs in vbo_attrib.items():
             vbo = vbo_offset_stride[0]

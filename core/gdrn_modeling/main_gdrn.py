@@ -2,7 +2,7 @@ from loguru import logger as loguru_logger
 import logging
 import os
 
-os.environ["PYOPENGL_PLATFORM"] = "egl"
+# os.environ["PYOPENGL_PLATFORM"] = "egl"
 import os.path as osp
 import sys
 from setproctitle import setproctitle
@@ -17,6 +17,7 @@ from mmcv import Config
 import cv2
 from pytorch_lightning import seed_everything
 from pytorch_lightning.lite import LightningLite  # import LightningLite
+# from pytorch_lightning.core.module import LightningModule as _LiteModule
 
 cv2.setNumThreads(0)  # pytorch issue 1355: possible deadlock in dataloader
 # OpenCL may be enabled by default in OpenCV3; disable it because it's not
@@ -98,7 +99,7 @@ def setup(args):
             cfg.SOLVER.OPTIMIZER_CFG = optim_cfg
         else:
             optim_cfg = cfg.SOLVER.OPTIMIZER_CFG
-        iprint("optimizer_cfg:", optim_cfg)
+        print("optimizer_cfg:", optim_cfg)
         cfg.SOLVER.OPTIMIZER_NAME = optim_cfg["type"]
         cfg.SOLVER.BASE_LR = optim_cfg["lr"]
         cfg.SOLVER.MOMENTUM = optim_cfg.get("momentum", 0.9)
@@ -139,7 +140,17 @@ class Lite(GDRN_Lite):
     def set_my_env(self, args, cfg):
         my_default_setup(cfg, args)  # will set os.environ["PYTHONHASHSEED"]
         seed_everything(int(os.environ["PYTHONHASHSEED"]), workers=True)
-        setup_for_distributed(is_master=self.is_global_zero)
+        
+        import torch
+        torch.backends.cudnn.benchmark = False
+        # torch.backends.cudnn.deterministic = True
+        # 可順便吃一下 4080 Tensor Cores 的建議
+        torch.set_float32_matmul_precision("high")
+        
+        # setup_for_distributed(is_master=self.is_global_zero)
+        # 兼容 LightningLite/Fabric 與 LightningModule：前者有 is_global_zero，後者沒有
+        is_master = getattr(self, "is_global_zero", True)
+        setup_for_distributed(is_master=is_master)
 
     def run(self, args, cfg):
         self.set_my_env(args, cfg)
@@ -148,10 +159,13 @@ class Lite(GDRN_Lite):
         if args.eval_only or cfg.TEST.SAVE_RESULTS_ONLY or (not cfg.MODEL.POSE_NET.XYZ_ONLINE):
             renderer = None
         else:
+            if cfg.MODEL.POSE_NET.XYZ_ONLINE:
+                os.environ["PYOPENGL_PLATFORM"] = "egl"   # ✅ 在這裡設定
             train_dset_meta = MetadataCatalog.get(cfg.DATASETS.TRAIN[0])
             data_ref = ref.__dict__[train_dset_meta.ref_key]
             train_obj_names = train_dset_meta.objs
-            render_gpu_id = self.local_rank
+            # render_gpu_id = self.local_rank
+            render_gpu_id = getattr(self, "local_rank", 0)
             renderer = get_renderer(cfg, data_ref, obj_names=train_obj_names, gpu_id=render_gpu_id)
 
         logger.info(f"Used GDRN module name: {cfg.MODEL.POSE_NET.NAME}")
@@ -164,6 +178,10 @@ class Lite(GDRN_Lite):
             model, optimizer = self.setup(model, optimizer)
         else:
             model = self.setup(model)
+        # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # model = model.to(device)
+        # （此時 optimizer 通常還沒有 state，要搬也沒必要）
+        # 如果你未來真的要在載入 checkpoint 後再搬 optimizer state，可再補，但現在不用。
 
         if True:
             # sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -183,9 +201,9 @@ class Lite(GDRN_Lite):
             return self.do_test(cfg, model)
 
         self.do_train(cfg, args, model, optimizer, renderer=renderer, resume=args.resume)
-        if hard_limit < FILE_LIMIT:
-            logger.warning("set sharing strategy for multiprocessing to file_system")
-            torch.multiprocessing.set_sharing_strategy("file_system")
+        # if hard_limit < FILE_LIMIT:
+        #     logger.warning("set sharing strategy for multiprocessing to file_system")
+        #     torch.multiprocessing.set_sharing_strategy("file_system")
         return self.do_test(cfg, model)
 
 
@@ -196,13 +214,26 @@ def main(args):
     logger.info(f"start to train with {args.num_machines} nodes and {args.num_gpus} GPUs")
     if args.num_gpus > 1 and args.strategy is None:
         args.strategy = "ddp"
-    Lite(
-        accelerator="gpu",
-        strategy=args.strategy,
-        devices=args.num_gpus,
-        num_nodes=args.num_machines,
-        precision=16 if cfg.SOLVER.AMP.ENABLED else 32,
-    ).run(args, cfg)
+    # Lite(
+    #     accelerator="gpu",
+    #     strategy=args.strategy,
+    #     devices=args.num_gpus,
+    #     num_nodes=args.num_machines,
+    #     precision=16 if cfg.SOLVER.AMP.ENABLED else 32,
+    # ).run(args, cfg)
+    # 嘗試以 LightningLite/Fabric 風格初始化；若不支援則回落到不帶參數
+    try:
+        lite = Lite(
+            accelerator="gpu",
+            strategy=args.strategy,
+            devices=args.num_gpus,
+            num_nodes=args.num_machines,
+            precision=16 if cfg.SOLVER.AMP.ENABLED else 32,
+        )
+    except TypeError:
+        # 舊版/非-Lite 類別不接受這些參數
+        lite = Lite()
+    lite.run(args, cfg)
 
 
 if __name__ == "__main__":

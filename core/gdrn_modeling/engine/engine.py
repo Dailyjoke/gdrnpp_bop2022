@@ -26,6 +26,8 @@ from detectron2.evaluation import (
 from detectron2.data.common import AspectRatioGroupedDataset
 from detectron2.data import MetadataCatalog
 from pytorch_lightning.lite import LightningLite  # import LightningLite
+# from pytorch_lightning.core.module import LightningModule as _LiteModule
+
 
 from lib.utils.setup_logger import log_first_n
 from lib.utils.utils import dprint
@@ -49,7 +51,7 @@ import ref
 logger = logging.getLogger(__name__)
 
 
-class GDRN_Lite(LightningLite):
+class GDRN_Lite(LightningLite): # _LiteModule
     def get_evaluator(self, cfg, dataset_name, output_folder=None):
         """Create evaluator(s) for a given dataset.
 
@@ -220,8 +222,17 @@ class GDRN_Lite(LightningLite):
             optimizer=optimizer,
             scheduler=scheduler,
         )
-        if hasattr(self._precision_plugin, "scaler"):
-            extra_ckpt_dict["gradscaler"] = self._precision_plugin.scaler
+        # if hasattr(self._precision_plugin, "scaler"):
+        #     extra_ckpt_dict["gradscaler"] = self._precision_plugin.scaler
+        # 兼容不同 Lightning 版本：_precision_plugin（舊）/_precision（新）
+        _precision_obj = getattr(self, "_precision_plugin", None)
+        if _precision_obj is None:
+            _precision_obj = getattr(self, "_precision", None)
+
+        scaler = getattr(_precision_obj, "scaler", None)
+        if scaler is not None:
+            extra_ckpt_dict["gradscaler"] = scaler
+            
         checkpointer = MyCheckpointer(
             model,
             cfg.OUTPUT_DIR,

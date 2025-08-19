@@ -44,10 +44,12 @@ from core.gdrn_modeling.models import (
 class GdrnPredictor():
     def __init__(self,
                  config_file_path=osp.join(PROJ_ROOT,"configs/gdrn/lmo_pbr/convnext_a6_AugCosyAAEGray_BG05_mlL1_DMask_amodalClipBox_classAware_lmo.py"),
-                 ckpt_file_path=osp.join(PROJ_ROOT,"output/gdrn/lmo_pbr/convnext_a6_AugCosyAAEGray_BG05_mlL1_DMask_amodalClipBox_classAware_lmo/model_final.pth"),
+                 ckpt_file_path=osp.join(PROJ_ROOT,"models/wangg12/GDRNPP/gdrn/lmo_pbr/convnext_a6_AugCosyAAEGray_BG05_mlL1_DMask_amodalClipBox_classAware_lmo/model_final_wo_optim.pth"),
                  camera_json_path=osp.join(PROJ_ROOT,"datasets/BOP_DATASETS/lmo/camera.json"),
                  path_to_obj_models=osp.join(PROJ_ROOT,"datasets/BOP_DATASETS/lmo/models")
                  ):
+        # ckpt_file_path=osp.join(PROJ_ROOT,"output/gdrn/lmo_pbr/convnext_a6_AugCosyAAEGray_BG05_mlL1_DMask_amodalClipBox_classAware_lmo/model_final.pth"),
+
 
         self.args = SimpleNamespace(config_file=config_file_path,
                                     opts={'TEST.SAVE_RESULT_ONLY': True,
@@ -73,8 +75,21 @@ class GdrnPredictor():
         self.objs_dir = path_to_obj_models
 
         #set your trained object names
-        self.objs = {1:'class_name_1',
-                     2:'class_name_2'}
+        self.objs = {1:'ape',       #猿猴
+                     2:'benchvise', #台鉗
+                     3:'bowl',      #碗
+                     4:'camera',    #相機
+                     5:'can',       #澆水壺
+                     6:'cat',       #貓
+                     7:'cup',       #杯子
+                     8:'driller',   #鑽孔機
+                     9:'duck',      #鴨子
+                     10:'eggbox',   #蛋盒
+                     11:'glue',     #膠水
+                     12:'holepuncher',#打孔器
+                     13:'iron',     #熨斗
+                     14:'lamp',     #燈
+                     15:'phone'}    #手機
 
         self.cls_names = [i for i in self.objs.values()]
         self.obj_ids = [i for i in self.objs.keys()]
@@ -94,6 +109,9 @@ class GdrnPredictor():
             devices=1,
             num_nodes=1,
             precision=32)
+        # model_lite = Lite()
+        if not hasattr(model_lite, "is_global_zero"):
+            model_lite.is_global_zero = True
 
         self.model = self.set_eval_model(model_lite, self.args, self.cfg)
 

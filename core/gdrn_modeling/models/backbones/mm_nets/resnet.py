@@ -11,6 +11,7 @@ from mmcv.cnn import (
     kaiming_init,
 )
 from mmcv.runner import load_checkpoint
+# from mmengine.runner import load_checkpoint
 from mmcv.utils.parrots_wrapper import _BatchNorm
 
 

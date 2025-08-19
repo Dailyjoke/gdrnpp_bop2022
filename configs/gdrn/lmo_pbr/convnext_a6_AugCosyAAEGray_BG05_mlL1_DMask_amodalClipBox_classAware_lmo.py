@@ -31,8 +31,8 @@ INPUT = dict(
 )
 
 SOLVER = dict(
-    IMS_PER_BATCH=48,
-    TOTAL_EPOCHS=40,  # 30
+    IMS_PER_BATCH=8,
+    TOTAL_EPOCHS=5,  # 30 40
     LR_SCHEDULER_NAME="flat_and_anneal",
     ANNEAL_METHOD="cosine",  # "cosine"
     ANNEAL_POINT=0.72,
@@ -61,7 +61,7 @@ MODEL = dict(
     BBOX_TYPE="AMODAL_CLIP",  # VISIB or AMODAL
     POSE_NET=dict(
         NAME="GDRN_double_mask",
-        XYZ_ONLINE=True,
+        XYZ_ONLINE=False, # True
         NUM_CLASSES=8,
         BACKBONE=dict(
             FREEZE=False,

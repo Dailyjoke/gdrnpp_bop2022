@@ -3,6 +3,7 @@ from abc import ABCMeta, abstractmethod
 
 import torch.nn as nn
 from mmcv.runner import load_checkpoint
+# from mmengine.runner import load_checkpoint
 
 
 class BaseBackbone(nn.Module, metaclass=ABCMeta):

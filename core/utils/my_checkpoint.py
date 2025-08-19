@@ -7,6 +7,11 @@ from mmcv.runner.checkpoint import (
     load_state_dict,
     _process_mmcls_checkpoint,
 )
+# from mmengine.checkpoint import (
+#     _load_checkpoint,
+#     load_state_dict,
+#     _process_mmcls_checkpoint,
+# )
 import math
 import logging
 import timm
@@ -18,7 +23,8 @@ from timm.models.helpers import (
 )
 from torch.nn.modules.utils import consume_prefix_in_state_dict_if_present
 from torch.nn.parallel import DataParallel, DistributedDataParallel
-from pytorch_lightning.lite.wrappers import _LiteModule
+# from pytorch_lightning.lite.wrappers import _LiteModule
+from pytorch_lightning.core.module import LightningModule as _LiteModule
 from fairscale.nn.data_parallel.sharded_ddp import ShardedDataParallel
 
 

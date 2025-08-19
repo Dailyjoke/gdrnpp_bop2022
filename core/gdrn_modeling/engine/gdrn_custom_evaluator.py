@@ -20,6 +20,8 @@ from tabulate import tabulate
 from tqdm import tqdm
 from transforms3d.quaternions import quat2mat
 from pytorch_lightning.lite import LightningLite
+# from pytorch_lightning.core.module import LightningModule as _LiteModule
+
 
 cur_dir = osp.dirname(osp.abspath(__file__))
 import ref

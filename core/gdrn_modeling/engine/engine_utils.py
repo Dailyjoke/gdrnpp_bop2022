@@ -130,7 +130,10 @@ def batch_data_train_online(cfg, data, renderer, device="cuda"):
 
     # rendering online xyz -----------------------------
     if net_cfg.XYZ_BP:
-        pc_cam_tensor = torch.cuda.FloatTensor(out_res, out_res, 4, device=device).detach()
+        # pc_cam_tensor = torch.cuda.FloatTensor(out_res, out_res, 4, device=device).detach()
+        pc_cam_tensor = torch.empty((out_res, out_res, 4), dtype=torch.float32, device=device)
+        print("DEBUG out_res:", out_res, "device:", device)
+
         roi_depth_batch = torch.empty(bs, out_res, out_res, dtype=torch.float32, device=device)
         for _i in range(bs):
             pose = np.hstack(
@@ -266,7 +269,10 @@ def batch_data_inference_roi(cfg, data, device='cuda'):
     return batch
 
 
-def get_renderer(cfg, data_ref, obj_names, gpu_id=None):
+def get_renderer(cfg, data_ref, obj_names, gpu_id=0):
+    # 確保是 int
+    gpu_id = int(gpu_id)
+    
     """for rendering the targets (xyz) online."""
     model_dir = data_ref.model_dir
 
@@ -277,6 +283,21 @@ def get_renderer(cfg, data_ref, obj_names, gpu_id=None):
     if data_ref.texture_paths is not None:
         texture_paths = [osp.join(model_dir, "obj_{:06d}.png".format(obj_id)) for obj_id in obj_ids]
 
+    # ren = EGLRenderer(
+    #     model_paths,
+    #     texture_paths=texture_paths,
+    #     vertex_scale=data_ref.vertex_scale,
+    #     znear=data_ref.zNear,
+    #     zfar=data_ref.zFar,
+    #     K=data_ref.camera_matrix,  # may override later
+    #     height=cfg.MODEL.POSE_NET.OUTPUT_RES,
+    #     width=cfg.MODEL.POSE_NET.OUTPUT_RES,
+    #     gpu_id=gpu_id,
+    #     use_cache=True,
+    # )
+    H = cfg.MODEL.POSE_NET.OUTPUT_RES
+    W = cfg.MODEL.POSE_NET.OUTPUT_RES
+    # 初始化 EGLRenderer
     ren = EGLRenderer(
         model_paths,
         texture_paths=texture_paths,
@@ -284,11 +305,19 @@ def get_renderer(cfg, data_ref, obj_names, gpu_id=None):
         znear=data_ref.zNear,
         zfar=data_ref.zFar,
         K=data_ref.camera_matrix,  # may override later
-        height=cfg.MODEL.POSE_NET.OUTPUT_RES,
-        width=cfg.MODEL.POSE_NET.OUTPUT_RES,
+        height=H,
+        width=W,
         gpu_id=gpu_id,
         use_cache=True,
     )
+    # --- 關鍵修正：用 torch.empty 建立 CUDA tensor buffer ---
+    device = torch.device(f"cuda:{gpu_id}")
+
+    ren.image_tensor = torch.empty((H, W, 4), device=device, dtype=torch.float32).detach()
+    ren.seg_tensor   = torch.empty((H, W, 4), device=device, dtype=torch.float32).detach()
+    ren.pc_cam_tensor= torch.empty((H, W, 4), device=device, dtype=torch.float32).detach()
+
+    
     return ren
 
 

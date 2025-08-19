@@ -11,15 +11,9 @@ from .texture import Texture, TextureMultisample
 
 class Framebuffer(object):
     def __init__(self, attachements):
-        # 用 numpy 生成單一 GLuint，然後轉成 int
-        buf = np.empty(1, dtype=np.uint32)
         self.__id = np.empty(1, dtype=np.uint32)
-        # glCreateFramebuffers(len(self.__id), self.__id)
-        glCreateFramebuffers(1, buf)
-        self.__id = int(buf[0])   # 確保是 int，不是 ndarray
-        
-        # for k in attachements.keys():
-        for k, attachement in attachements.items():
+        glCreateFramebuffers(len(self.__id), self.__id)
+        for k in attachements.keys():
             attachement = attachements[k]
             if isinstance(attachement, Renderbuffer) or isinstance(attachement, RenderbufferMultisample):
                 glNamedFramebufferRenderbuffer(self.__id, k, GL_RENDERBUFFER, attachement.id)
@@ -36,12 +30,10 @@ class Framebuffer(object):
         glBindFramebuffer(GL_FRAMEBUFFER, self.__id)
 
     def delete(self):
-        # glDeleteFramebuffers(1, self.__id)
-        glDeleteFramebuffers(1, np.array([self.__id], dtype=np.uint32))
+        glDeleteFramebuffers(1, self.__id)
         for k in self.__attachements.keys():
             self.__attachements[k].delete()
 
     @property
     def id(self):
-        # return self.__id[0]
-        return self.__id
+        return self.__id[0]

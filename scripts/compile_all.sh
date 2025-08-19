@@ -24,10 +24,16 @@ python setup.py build_ext --inplace
 
 
 echo ""
-echo "********build uncertainty pnp************"
+echo "********build uncertainty pnp************no"
 cd ../uncertainty_pnp
 # sh build_ceres.sh
 rm -rf build/
+# sudo apt-get update
+# sudo apt-get install -y libceres-dev libgoogle-glog-dev libgflags-dev
+# mkdir -p lib
+# ln -sf /usr/lib/libceres.so      ./lib/libceres.so
+# ln -sf /usr/lib/x86_64-linux-gnu/libglog.so       ./lib/libglog.so
+# ln -sf /usr/lib/x86_64-linux-gnu/libgflags.so     ./lib/libgflags.so  # 若需要
 python setup.py build_ext --inplace
 
 

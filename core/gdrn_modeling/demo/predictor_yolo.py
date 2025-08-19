@@ -30,9 +30,10 @@ class YoloPredictor():
 
     def __init__(self, exp_name="yolox-x",
                        config_file_path=osp.join(PROJ_ROOT,"configs/yolox/bop_pbr/yolox_x_640_augCozyAAEhsv_ranger_30_epochs_lmo_pbr_lmo_bop_test.py"),
-                       ckpt_file_path=osp.join(PROJ_ROOT,"output/yolox/bop_pbr/yolox_x_640_augCozyAAEhsv_ranger_30_epochs_lmo_pbr_lmo_bop_test/model_final.pth"),
+                       ckpt_file_path=osp.join(PROJ_ROOT,"models/wangg12/GDRNPP/gdrn/lmo_pbr/convnext_a6_AugCosyAAEGray_BG05_mlL1_DMask_amodalClipBox_classAware_lmo/model_final_wo_optim.pth"),
                        fuse=True,
                        fp16=False):
+        #                        ckpt_file_path=osp.join(PROJ_ROOT,"output/yolox/bop_pbr/yolox_x_640_augCozyAAEhsv_ranger_30_epochs_lmo_pbr_lmo_bop_test/model_final.pth"),
         self.exp = get_exp(None, exp_name)
         self.model = self.exp.get_model()
         logger.info("Model Summary: {}".format(get_model_info(self.model, self.exp.test_size)))
@@ -174,11 +175,30 @@ if __name__ == "__main__":
     predictor = YoloPredictor(
                        exp_name="yolox-x",
                        config_file_path=osp.join(PROJ_ROOT,"configs/yolox/bop_pbr/yolox_x_640_augCozyAAEhsv_ranger_30_epochs_lmo_pbr_lmo_bop_test.py"),
-                       ckpt_file_path=osp.join(PROJ_ROOT,"output/yolox/bop_pbr/yolox_x_640_augCozyAAEhsv_ranger_30_epochs_lmo_pbr_lmo_bop_test/model_final.pth"),
+                       ckpt_file_path=osp.join(PROJ_ROOT,"models/wangg12/GDRNPP/yolox/bop_pbr/yolox_x_640_augCozyAAEhsv_ranger_30_epochs_lmo_pbr_lmo_bop_test/model_final.pth"),
                        fuse=True,
                        fp16=False
                        )
-    img_path = osp.join(PROJ_ROOT,"datasets/BOP_DATASETS/lmo/test/000001/rgb/000000.jpg")
+                        #    ckpt_file_path=osp.join(PROJ_ROOT,"output/yolox/bop_pbr/yolox_x_640_augCozyAAEhsv_ranger_30_epochs_lmo_pbr_lmo_bop_test/model_final.pth"),
+    # img_path = osp.join(PROJ_ROOT,"datasets/BOP_DATASETS/lmo/test/000001/rgb/000000.jpg")
+    img_path = osp.join(PROJ_ROOT,"datasets/BOP_DATASETS/lmo/test/000001/rgb/000025.png")
     img = cv2.imread(img_path)
     result = predictor.inference(img)
-    predictor.visual_yolo(result[0], img, ["cls_name_1", "cls_name_2"])
+    # predictor.visual_yolo(result[0], img, ["cls_name_1", "cls_name_2"])
+    # 1:'ape',       #猿猴
+    # 2:'benchvise', #台鉗
+    # 3:'bowl',      #碗
+    # 4:'camera',    #相機
+    # 5:'can',       #澆水壺
+    # 6:'cat',       #貓
+    # 7:'cup',       #杯子
+    # 8:'driller',   #鑽孔機
+    # 9:'duck',      #鴨子
+    # 10:'eggbox',   #蛋盒
+    # 11:'glue',     #膠水
+    # 12:'holepuncher',#打孔器
+    # 13:'iron',     #熨斗
+    # 14:'lamp',     #燈
+    # 15:'phone'
+    predictor.visual_yolo(result[0], img, ["ape", "benchvise","bowl","camera","can","cat","cup","driller","duck","eggbox","glue","holepuncher","iron","lamp","phone"])
+
