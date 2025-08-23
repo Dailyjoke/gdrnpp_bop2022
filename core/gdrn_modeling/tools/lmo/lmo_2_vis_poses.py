@@ -61,6 +61,7 @@ ren = EGLRenderer(
 
 # NOTE:
 pred_path = "output/gdrn/lmo/a6_cPnP_AugAAETrunc_BG0.5_lmo_real_pbr0.1_40e/inference_model_final/lmo_test/a6-cPnP-AugAAETrunc-BG0.5-lmo-real-pbr0.1-40e-test_lmo_test_preds.pkl"
+# pred_path ="output/gdrn/lmo_pbr/2_convnext_a6_AugCosyAAEGray_BG05_mlL1_DMask_amodalClipBox_classAware_lmo/inference_model_final/lmo_bop_test/convnext-a6-AugCosyAAEGray-BG05-mlL1-DMask-amodalClipBox-classAware-lmo-test-iter0_lmo-test.csv"
 
 vis_dir = "output/gdrn/lmo/a6_cPnP_AugAAETrunc_BG0.5_lmo_real_pbr0.1_40e/inference_model_final/lmo_test/vis_gt_pred"
 mmcv.mkdir_or_exist(vis_dir)

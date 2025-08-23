@@ -13,6 +13,7 @@ import torch.distributed as dist
 
 # from detectron2.engine import launch
 from detectron2.data import MetadataCatalog
+# from detectron2.data.catalog import MetadataCatalog
 from mmcv import Config
 import cv2
 from pytorch_lightning import seed_everything
@@ -167,6 +168,7 @@ class Lite(GDRN_Lite):
             # render_gpu_id = self.local_rank
             render_gpu_id = getattr(self, "local_rank", 0)
             renderer = get_renderer(cfg, data_ref, obj_names=train_obj_names, gpu_id=render_gpu_id)
+            # renderer = None
 
         logger.info(f"Used GDRN module name: {cfg.MODEL.POSE_NET.NAME}")
         model, optimizer = eval(cfg.MODEL.POSE_NET.NAME).build_model_optimizer(cfg, is_test=args.eval_only)

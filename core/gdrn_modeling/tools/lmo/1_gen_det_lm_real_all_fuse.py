@@ -23,9 +23,11 @@ max_objects_in_scene = 10
 num_bg_imgs = 15000
 min_visib = 0.6
 blackness_thres = 16
-# vocpath = 'datasets/VOCdevkit/VOC2012/JPEGImages/*.jpg'
-bg_path = "datasets/coco/train2017/*.jpg"
-bg_img_paths = glob.glob(bg_path)
+vocpath = 'datasets/VOCdevkit/VOC2012/JPEGImages/*.jpg'
+bg_img_paths = glob.glob(vocpath)
+
+# bg_path = "datasets/coco/train2017/*.jpg"
+# bg_img_paths = glob.glob(bg_path)
 assert len(bg_img_paths) > 1000, len(bg_img_paths)
 
 output_path = "datasets/BOP_DATASETS/lmo/lm_real_all_fuse_det_coco/"

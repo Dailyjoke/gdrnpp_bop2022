@@ -75,17 +75,39 @@ def calc_localization_scores(scene_ids, obj_ids, matches, n_top, do_print=True):
     :return: Dictionary with the evaluation scores.
     """
     # Count the number of visible object instances in each image.
-    insts = {i: {j: defaultdict(lambda: 0) for j in scene_ids} for i in obj_ids}
+    # insts = {i: {j: defaultdict(lambda: 0) for j in scene_ids} for i in obj_ids}
+    # for m in matches:
+    #     if m["valid"]:
+    #         insts[m["obj_id"]][m["scene_id"]][m["im_id"]] += 1
+            
+    # --- Normalize IDs to integers to avoid str/int key mismatches ---
+    scene_ids = [int(s) for s in scene_ids]
+    obj_ids = [int(o) for o in obj_ids]
+
+    # Count the number of visible object instances in each image.
+    insts = {oi: {si: defaultdict(int) for si in scene_ids} for oi in obj_ids}
     for m in matches:
-        if m["valid"]:
-            insts[m["obj_id"]][m["scene_id"]][m["im_id"]] += 1
+        if m.get("valid"):
+            m_obj = int(m["obj_id"])
+            m_scene = int(m["scene_id"])
+            m_im = int(m["im_id"])
+            if m_obj not in insts:
+                # Create buckets for unseen obj_id just in case
+                insts[m_obj] = {si: defaultdict(int) for si in scene_ids}
+            if m_scene not in insts[m_obj]:
+                insts[m_obj][m_scene] = defaultdict(int)
+            insts[m_obj][m_scene][m_im] += 1
 
     # Count the number of targets = object instances to be found.
     # For SiSo, there is either zero or one target in each image - there is just
     # one even if there are more instances of the object of interest.
-    tars = 0  # Total number of targets.
-    obj_tars = {i: 0 for i in obj_ids}  # Targets per object.
-    scene_tars = {i: 0 for i in scene_ids}  # Targets per scene.
+    # tars = 0  # Total number of targets.
+    # obj_tars = {i: 0 for i in obj_ids}  # Targets per object.
+    # scene_tars = {i: 0 for i in scene_ids}  # Targets per scene.
+    tars = 0  # 總 target 數量
+    obj_tars = defaultdict(int)     # 每個物件的 target
+    scene_tars = defaultdict(int)   # 每個場景的 target
+ 
     for obj_id, obj_insts in insts.items():
         for scene_id, scene_insts in obj_insts.items():
 
@@ -100,14 +122,29 @@ def calc_localization_scores(scene_ids, obj_ids, matches, n_top, do_print=True):
             scene_tars[scene_id] += count
 
     # Count the number of true positives.
-    tps = 0  # Total number of true positives.
-    obj_tps = {i: 0 for i in obj_ids}  # True positives per object.
-    scene_tps = {i: 0 for i in scene_ids}  # True positives per scene.
+    # tps = 0  # Total number of true positives.
+    # obj_tps = {i: 0 for i in obj_ids}  # True positives per object.
+    # scene_tps = {i: 0 for i in scene_ids}  # True positives per scene.
+    tps = 0  # 總 true positive 數量
+    obj_tps = defaultdict(int)      # 每個物件的 TP
+    scene_tps = defaultdict(int)    # 每個場景的 TP
+    
+    # for m in matches:
+    #     if m["valid"] and m["est_id"] != -1:
+    #         tps += 1
+    #         obj_tps[m["obj_id"]] += 1
+    #         scene_tps[m["scene_id"]] += 1
     for m in matches:
-        if m["valid"] and m["est_id"] != -1:
+        if m.get("valid") and m.get("est_id", -1) != -1:
             tps += 1
-            obj_tps[m["obj_id"]] += 1
-            scene_tps[m["scene_id"]] += 1
+            m_obj = int(m["obj_id"])
+            m_scene = int(m["scene_id"])
+            if m_obj not in obj_tps:
+                obj_tps[m_obj] = 0
+            if m_scene not in scene_tps:
+                scene_tps[m_scene] = 0
+            obj_tps[m_obj] += 1
+            scene_tps[m_scene] += 1
 
     # Total recall.
     recall = calc_recall(tps, tars)

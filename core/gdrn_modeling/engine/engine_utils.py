@@ -132,7 +132,7 @@ def batch_data_train_online(cfg, data, renderer, device="cuda"):
     if net_cfg.XYZ_BP:
         # pc_cam_tensor = torch.cuda.FloatTensor(out_res, out_res, 4, device=device).detach()
         pc_cam_tensor = torch.empty((out_res, out_res, 4), dtype=torch.float32, device=device)
-        print("DEBUG out_res:", out_res, "device:", device)
+        # print("DEBUG out_res:", out_res, "device:", device)
 
         roi_depth_batch = torch.empty(bs, out_res, out_res, dtype=torch.float32, device=device)
         for _i in range(bs):

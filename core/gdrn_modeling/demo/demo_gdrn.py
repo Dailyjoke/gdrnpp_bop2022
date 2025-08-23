@@ -43,7 +43,7 @@ def get_image_list(rgb_images_path, depth_images_path=None):
 
 
 if __name__ == "__main__":
-    image_paths = get_image_list(osp.join(PROJ_ROOT,"datasets/BOP_DATASETS/lmo/test/000001/rgb"), osp.join(PROJ_ROOT,"datasets/BOP_DATASETS/lmo/test/000001/depth"))
+    image_paths = get_image_list(osp.join(PROJ_ROOT,"datasets/BOP_DATASETS/lmo/test/000002/rgb"), osp.join(PROJ_ROOT,"datasets/BOP_DATASETS/lmo/test/000002/depth"))
     yolo_predictor = YoloPredictor(
                        exp_name="yolox-x",
                        config_file_path=osp.join(PROJ_ROOT,"configs/yolox/bop_pbr/yolox_x_640_augCozyAAEhsv_ranger_30_epochs_lmo_pbr_lmo_bop_test.py"),

@@ -26,6 +26,8 @@ import time
 import argparse
 import setproctitle
 import sys
+from collections import defaultdict
+
 
 cur_dir = osp.dirname(osp.abspath(__file__))
 sys.path.insert(0, osp.join(cur_dir, "../../../"))
